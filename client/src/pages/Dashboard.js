@@ -17,7 +17,6 @@ import {
   DialogActions,
   TextField,
   Paper,
-  Divider,
   Avatar,
   Zoom,
   Fade,

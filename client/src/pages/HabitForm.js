@@ -23,7 +23,6 @@ function HabitForm() {
   const {
     habits,
     loading,
-    error,
     createHabit,
     updateHabit
   } = useHabits();
