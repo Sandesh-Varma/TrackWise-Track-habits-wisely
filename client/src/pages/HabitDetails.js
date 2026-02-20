@@ -17,7 +17,7 @@ import api from '../utils/api';
 function HabitDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { habits, loading, error, deleteHabit, logHabit } = useHabits();
+  const { habits, loading, deleteHabit, logHabit } = useHabits();
   const [logs, setLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(true);
   const [logDialogOpen, setLogDialogOpen] = useState(false);
