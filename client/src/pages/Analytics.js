@@ -1,327 +1,273 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  Container,
-  Typography,
-  Box,
-  Paper,
-  CircularProgress,
-  Alert,
-  Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  useTheme,
-  alpha
+  Container, Typography, Box, Button, Grid, CircularProgress,
+  Alert, FormControl, InputLabel, Select, MenuItem,
 } from '@mui/material';
+import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  BarChart, Bar, PieChart, Pie, Cell
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Area, AreaChart,
 } from 'recharts';
 import api from '../utils/api';
-import { styled } from '@mui/material/styles';
 
-const BackgroundBox = styled(Box)(({ theme }) => ({
-  minHeight: '100vh',
-  background: `linear-gradient(135deg, ${alpha(theme.palette.primary.dark, 0.95)} 0%, ${alpha(theme.palette.secondary.dark, 0.95)} 100%)`,
-  position: 'relative',
-  overflow: 'hidden',
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: `radial-gradient(circle at 50% 50%, ${alpha(theme.palette.primary.main, 0.1)} 0%, transparent 50%)`,
-    animation: 'pulse 8s ease-in-out infinite',
+const GRADIENT_COLORS = ['#6366F1', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#EC4899', '#14B8A6'];
+
+const customTooltip = {
+  contentStyle: {
+    background: 'rgba(15,15,30,0.95)',
+    border: '1px solid rgba(255,255,255,0.12)',
+    borderRadius: 12,
+    boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+    fontSize: 13, color: '#F1F5F9',
+    backdropFilter: 'blur(20px)',
   },
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-    opacity: 0.5,
-    animation: 'slide 20s linear infinite',
-  },
-  '@keyframes pulse': {
-    '0%': {
-      transform: 'scale(1)',
-      opacity: 0.5,
-    },
-    '50%': {
-      transform: 'scale(1.5)',
-      opacity: 0.2,
-    },
-    '100%': {
-      transform: 'scale(1)',
-      opacity: 0.5,
-    },
-  },
-  '@keyframes slide': {
-    '0%': {
-      backgroundPosition: '0 0',
-    },
-    '100%': {
-      backgroundPosition: '100px 100px',
-    },
-  },
-}));
+  labelStyle: { color: '#818CF8', fontWeight: 700, marginBottom: 4 },
+  itemStyle: { color: '#94A3B8' },
+  cursor: { stroke: 'rgba(99,102,241,0.3)', strokeWidth: 1 },
+};
+
+function ChartCard({ title, subtitle, children }) {
+  return (
+    <Box sx={{
+      background: 'rgba(255,255,255,0.04)',
+      backdropFilter: 'blur(20px)',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: '20px', p: 3,
+      height: '100%',
+      transition: 'border-color 0.2s',
+      '&:hover': { borderColor: 'rgba(99,102,241,0.25)' },
+    }}>
+      <Box sx={{ mb: 2.5 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#F1F5F9' }}>{title}</Typography>
+        {subtitle && <Typography variant="caption" sx={{ color: '#475569' }}>{subtitle}</Typography>}
+      </Box>
+      {children}
+    </Box>
+  );
+}
+
+const CustomDot = (props) => {
+  const { cx, cy } = props;
+  return <circle cx={cx} cy={cy} r={4} fill="#6366F1" stroke="rgba(99,102,241,0.3)" strokeWidth={6} />;
+};
 
 function Analytics() {
-  const theme = useTheme();
+  const navigate = useNavigate();
   const [analyticsData, setAnalyticsData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedHabit, setSelectedHabit] = useState('');
 
   useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get('/api/analytics');
-        setAnalyticsData(response.data);
-        // Set default selected habit if available
-        if (response.data.habitCompletions.length > 0) {
-          setSelectedHabit(response.data.habitCompletions[0].habitId);
-        }
-        setError(null);
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to fetch analytics data');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAnalytics();
+    api.get('/api/analytics')
+      .then(r => {
+        setAnalyticsData(r.data);
+        if (r.data.habitCompletions?.length > 0) setSelectedHabit(r.data.habitCompletions[0].habitId);
+      })
+      .catch(err => setError(err.response?.data?.message || 'Failed to load analytics'))
+      .finally(() => setLoading(false));
   }, []);
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#d0ed57', '#a4de6c', '#8dd1e1'];
-
-  const getHabitData = (habitId) => {
-    return analyticsData?.habitCompletions.find(h => h.habitId === habitId);
-  };
-
-  const getStreakData = (habitId) => {
-    return analyticsData?.streakHistory.find(h => h.habitId === habitId);
-  };
-
-  if (loading) {
-    return (
-      <BackgroundBox>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-          <CircularProgress size={60} thickness={4} sx={{ color: 'white' }}/>
-        </Box>
-      </BackgroundBox>
-    );
-  }
-
-  if (error) {
-    return (
-      <BackgroundBox>
-        <Box sx={{ mt: 4, mb: 4 }}>
-          <Alert severity="error">{error}</Alert>
-        </Box>
-      </BackgroundBox>
-    );
-  }
-
-  if (!analyticsData || (analyticsData.overallProgress.length === 0 && analyticsData.habitCompletions.length === 0)) {
-    return (
-      <BackgroundBox>
-        <Box sx={{ mt: 4, mb: 4, color: 'white' }}>
-          <Paper 
-            elevation={3} 
-            sx={{
-              p: 4, 
-              textAlign: 'center', 
-              background: `linear-gradient(45deg, ${theme.palette.primary.light} 30%, ${theme.palette.primary.main} 90%)`,
-              color: 'white',
-              borderRadius: 2,
-            }}
-          >
-            <Typography variant="h5" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
-              No Analytics Data Yet
-            </Typography>
-            <Typography variant="body1">
-              Start logging your habits to see insightful charts and progress here!
-            </Typography>
-          </Paper>
-        </Box>
-      </BackgroundBox>
-    );
-  }
-
-  const currentHabitCompletionData = selectedHabit ? getHabitData(selectedHabit)?.data : [];
-  const currentHabitStreakData = selectedHabit ? getStreakData(selectedHabit)?.data : [];
-
-  const totalCompletions = analyticsData.habitCompletions.map(h => ({
-    name: h.name,
-    value: h.data.reduce((sum, entry) => sum + entry.count, 0)
-  })).filter(h => h.value > 0);
+  if (loading) return (
+    <Box sx={{ minHeight: '100vh', bgcolor: '#0D0D1A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ textAlign: 'center' }}>
+        <CircularProgress size={48} sx={{ color: '#6366F1', mb: 2 }} />
+        <Typography sx={{ color: '#475569' }}>Crunching your data…</Typography>
+      </Box>
+    </Box>
+  );
 
   return (
-    <BackgroundBox>
-      <Container maxWidth="lg">
-        <Box sx={{ mt: 4, mb: 4, color: 'white', position: 'relative', zIndex: 1 }}>
-          <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: 4 }}>
-            Habit Analytics & Insights
+    <Box sx={{ minHeight: '100vh', bgcolor: '#0D0D1A', py: 4 }}>
+      <Container maxWidth="xl">
+        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/')}
+          sx={{ mb: 3, color: '#64748B', borderRadius: '10px', '&:hover': { bgcolor: 'rgba(255,255,255,0.05)', color: '#94A3B8' } }}>
+          Back to Dashboard
+        </Button>
+
+        {/* Page Header */}
+        <Box sx={{ mb: 5 }}>
+          <Typography variant="h4" sx={{ fontWeight: 800, color: '#F1F5F9', letterSpacing: '-0.5px', mb: 0.5 }}>
+            Analytics &{' '}
+            <Box component="span" sx={{ background: 'linear-gradient(135deg, #818CF8, #C084FC)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              Insights
+            </Box>
           </Typography>
+          <Typography variant="body2" sx={{ color: '#475569' }}>
+            Your habit performance, visualised in full detail
+          </Typography>
+        </Box>
 
-          <Grid container spacing={4}>
-            {/* Overall Progress Chart */}
-            {analyticsData.overallProgress.length > 0 && (
+        {error && <Alert severity="error" sx={{ mb: 4, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#FCA5A5' }}>{error}</Alert>}
+
+        {(!analyticsData || (analyticsData.overallProgress?.length === 0 && analyticsData.habitCompletions?.length === 0)) ? (
+          <Box sx={{
+            background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.1)',
+            borderRadius: '20px', p: 8, textAlign: 'center',
+          }}>
+            <Typography sx={{ fontSize: 44, mb: 2 }}>📊</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: '#F1F5F9', mb: 1 }}>No data yet</Typography>
+            <Typography variant="body2" sx={{ color: '#475569' }}>Start logging your habits to unlock insights.</Typography>
+          </Box>
+        ) : (
+          <Grid container spacing={3}>
+            {/* defs for SVG gradients */}
+            <Box component="svg" sx={{ position: 'absolute', width: 0, height: 0 }}>
+              <defs>
+                <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#6366F1" stopOpacity={0.4} />
+                  <stop offset="100%" stopColor="#6366F1" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="streakGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#F59E0B" stopOpacity={0.4} />
+                  <stop offset="100%" stopColor="#F59E0B" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+            </Box>
+
+            {/* Overall Area Chart */}
+            {analyticsData.overallProgress?.length > 0 && (
               <Grid item xs={12}>
-                <Paper elevation={3} sx={{ p: 3, background: alpha(theme.palette.background.paper, 0.8), borderRadius: 2 }}>
-                  <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>Overall Habit Completions Over Time</Typography>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={analyticsData.overallProgress}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.text.secondary, 0.3)} />
-                      <XAxis dataKey="date" stroke={theme.palette.text.secondary} />
-                      <YAxis stroke={theme.palette.text.secondary} />
-                      <Tooltip 
-                        contentStyle={{ background: theme.palette.background.paper, border: 'none', borderRadius: 5, boxShadow: theme.shadows[3] }}
-                        labelStyle={{ color: theme.palette.text.primary }}
-                        itemStyle={{ color: theme.palette.text.primary }}
-                      />
-                      <Legend />
-                      <Line type="monotone" dataKey="count" stroke={theme.palette.primary.main} strokeWidth={2} name="Completions" />
-                    </LineChart>
+                <ChartCard title="Overall Completions" subtitle="All habits combined over time">
+                  <ResponsiveContainer width="100%" height={280}>
+                    <AreaChart data={analyticsData.overallProgress}>
+                      <defs>
+                        <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#6366F1" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                      <XAxis dataKey="date" stroke="#334155" tick={{ fill: '#475569', fontSize: 12 }} />
+                      <YAxis stroke="#334155" tick={{ fill: '#475569', fontSize: 12 }} />
+                      <Tooltip {...customTooltip} />
+                      <Area type="monotone" dataKey="count" stroke="#6366F1" strokeWidth={2.5}
+                        fill="url(#areaFill)" dot={<CustomDot />} activeDot={{ r: 7, fill: '#818CF8', stroke: 'rgba(99,102,241,0.4)', strokeWidth: 8 }}
+                        name="Completions" />
+                    </AreaChart>
                   </ResponsiveContainer>
-                </Paper>
+                </ChartCard>
               </Grid>
             )}
 
-            {/* Habit Completion Breakdown (Pie Chart) */}
-            {totalCompletions.length > 0 && (
-              <Grid item xs={12} md={6}>
-                <Paper elevation={3} sx={{ p: 3, background: alpha(theme.palette.background.paper, 0.8), borderRadius: 2 }}>
-                  <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>Habit Completion Breakdown</Typography>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={totalCompletions}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={100}
-                        fill="#8884d8"
-                        dataKey="value"
-                        nameKey="name"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {totalCompletions.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ background: theme.palette.background.paper, border: 'none', borderRadius: 5, boxShadow: theme.shadows[3] }}
-                        labelStyle={{ color: theme.palette.text.primary }}
-                        itemStyle={{ color: theme.palette.text.primary }}
-                      />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </Paper>
-              </Grid>
-            )}
+            {/* Donut Chart */}
+            {analyticsData.habitCompletions?.length > 0 && (() => {
+              const totalCompletions = analyticsData.habitCompletions
+                .map(h => ({ name: h.name, value: h.data.reduce((s, e) => s + e.count, 0) }))
+                .filter(h => h.value > 0);
+              return totalCompletions.length > 0 ? (
+                <Grid item xs={12} md={5}>
+                  <ChartCard title="Habit Breakdown" subtitle="Completion share per habit">
+                    <ResponsiveContainer width="100%" height={280}>
+                      <PieChart>
+                        <Pie data={totalCompletions} cx="50%" cy="50%" innerRadius={65} outerRadius={105}
+                          paddingAngle={4} dataKey="value" nameKey="name">
+                          {totalCompletions.map((_, i) => (
+                            <Cell key={i} fill={GRADIENT_COLORS[i % GRADIENT_COLORS.length]}
+                              stroke="rgba(0,0,0,0.3)" strokeWidth={2} />
+                          ))}
+                        </Pie>
+                        <Tooltip {...customTooltip} />
+                        <Legend
+                          iconType="circle" iconSize={8}
+                          formatter={(v) => <span style={{ color: '#94A3B8', fontSize: 13 }}>{v}</span>}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </ChartCard>
+                </Grid>
+              ) : null;
+            })()}
 
-            {/* Individual Habit Progress (Bar Chart) */}
-            {analyticsData.habitCompletions.length > 0 && (
-              <Grid item xs={12} md={6}>
-                <Paper elevation={3} sx={{ p: 3, background: alpha(theme.palette.background.paper, 0.8), borderRadius: 2 }}>
-                  <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>Individual Habit Progress</Typography>
-                  <FormControl fullWidth margin="normal">
-                    <InputLabel sx={{ color: theme.palette.text.secondary }}>Select Habit</InputLabel>
-                    <Select
-                      value={selectedHabit}
-                      onChange={(e) => setSelectedHabit(e.target.value)}
-                      label="Select Habit"
-                      sx={{ color: theme.palette.text.primary, '.MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.text.secondary } }}
-                    >
-                      {analyticsData.habitCompletions.map(habit => (
-                        <MenuItem key={habit.habitId} value={habit.habitId}>
-                          {habit.name}
-                        </MenuItem>
+            {/* Bar Chart per Habit */}
+            {analyticsData.habitCompletions?.length > 0 && (
+              <Grid item xs={12} md={7}>
+                <ChartCard title="Individual Progress" subtitle="Select a habit to inspect">
+                  <FormControl fullWidth size="small" sx={{ mb: 2.5 }}>
+                    <InputLabel>Select Habit</InputLabel>
+                    <Select value={selectedHabit} onChange={e => setSelectedHabit(e.target.value)} label="Select Habit">
+                      {analyticsData.habitCompletions.map(h => (
+                        <MenuItem key={h.habitId} value={h.habitId}>{h.name}</MenuItem>
                       ))}
                     </Select>
                   </FormControl>
-                  
-                  {currentHabitCompletionData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={currentHabitCompletionData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.text.secondary, 0.3)} />
-                        <XAxis dataKey="date" stroke={theme.palette.text.secondary} />
-                        <YAxis stroke={theme.palette.text.secondary} />
-                        <Tooltip 
-                          contentStyle={{ background: theme.palette.background.paper, border: 'none', borderRadius: 5, boxShadow: theme.shadows[3] }}
-                          labelStyle={{ color: theme.palette.text.primary }}
-                          itemStyle={{ color: theme.palette.text.primary }}
-                        />
-                        <Legend />
-                        <Bar dataKey="count" fill={theme.palette.primary.main} name="Completions" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <Typography variant="body2" color="textSecondary" sx={{ mt: 2 }}>
-                      No completion data for this habit yet.
-                    </Typography>
-                  )}
-                </Paper>
+                  {(() => {
+                    const data = analyticsData.habitCompletions.find(h => h.habitId === selectedHabit)?.data || [];
+                    return data.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={210}>
+                        <BarChart data={data}>
+                          <defs>
+                            <linearGradient id="barFill" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#8B5CF6" />
+                              <stop offset="100%" stopColor="#6366F1" />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                          <XAxis dataKey="date" stroke="#334155" tick={{ fill: '#475569', fontSize: 12 }} />
+                          <YAxis stroke="#334155" tick={{ fill: '#475569', fontSize: 12 }} />
+                          <Tooltip {...customTooltip} />
+                          <Bar dataKey="count" fill="url(#barFill)" name="Completions" radius={[6, 6, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <Box sx={{ textAlign: 'center', py: 4 }}>
+                        <Typography variant="body2" sx={{ color: '#475569' }}>No data for this habit yet.</Typography>
+                      </Box>
+                    );
+                  })()}
+                </ChartCard>
               </Grid>
             )}
 
-            {/* Habit Streak History (Line Chart) */}
-            {analyticsData.streakHistory.length > 0 && (
+            {/* Streak Area Chart */}
+            {analyticsData.streakHistory?.length > 0 && (
               <Grid item xs={12}>
-                <Paper elevation={3} sx={{ p: 3, background: alpha(theme.palette.background.paper, 0.8), borderRadius: 2 }}>
-                  <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>Habit Streak History</Typography>
-                  <FormControl fullWidth margin="normal">
-                    <InputLabel sx={{ color: theme.palette.text.secondary }}>Select Habit for Streak</InputLabel>
-                    <Select
-                      value={selectedHabit}
-                      onChange={(e) => setSelectedHabit(e.target.value)}
-                      label="Select Habit for Streak"
-                      sx={{ color: theme.palette.text.primary, '.MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.text.secondary } }}
-                    >
-                      {analyticsData.streakHistory.map(habit => (
-                        <MenuItem key={habit.habitId} value={habit.habitId}>
-                          {habit.name}
-                        </MenuItem>
+                <ChartCard title="Streak Timeline" subtitle="Watch your momentum grow">
+                  <FormControl size="small" sx={{ mb: 2.5, minWidth: 220 }}>
+                    <InputLabel>Select Habit</InputLabel>
+                    <Select value={selectedHabit} onChange={e => setSelectedHabit(e.target.value)} label="Select Habit">
+                      {analyticsData.streakHistory.map(h => (
+                        <MenuItem key={h.habitId} value={h.habitId}>{h.name}</MenuItem>
                       ))}
                     </Select>
                   </FormControl>
-                  
-                  {currentHabitStreakData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={currentHabitStreakData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.text.secondary, 0.3)} />
-                        <XAxis dataKey="date" stroke={theme.palette.text.secondary} />
-                        <YAxis stroke={theme.palette.text.secondary} />
-                        <Tooltip 
-                          contentStyle={{ background: theme.palette.background.paper, border: 'none', borderRadius: 5, boxShadow: theme.shadows[3] }}
-                          labelStyle={{ color: theme.palette.text.primary }}
-                          itemStyle={{ color: theme.palette.text.primary }}
-                        />
-                        <Legend />
-                        <Line type="monotone" dataKey="streak" stroke={theme.palette.secondary.main} strokeWidth={2} name="Streak" />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <Typography variant="body2" color="textSecondary" sx={{ mt: 2 }}>
-                      No streak data for this habit yet.
-                    </Typography>
-                  )}
-                </Paper>
+                  {(() => {
+                    const data = analyticsData.streakHistory.find(h => h.habitId === selectedHabit)?.data || [];
+                    return data.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={240}>
+                        <AreaChart data={data}>
+                          <defs>
+                            <linearGradient id="streakFill" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.25} />
+                              <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                          <XAxis dataKey="date" stroke="#334155" tick={{ fill: '#475569', fontSize: 12 }} />
+                          <YAxis stroke="#334155" tick={{ fill: '#475569', fontSize: 12 }} />
+                          <Tooltip {...customTooltip} />
+                          <Area type="monotone" dataKey="streak" stroke="#F59E0B" strokeWidth={2.5}
+                            fill="url(#streakFill)"
+                            dot={{ fill: '#F59E0B', strokeWidth: 0, r: 4 }}
+                            activeDot={{ r: 7, fill: '#FCD34D', stroke: 'rgba(245,158,11,0.4)', strokeWidth: 8 }}
+                            name="Streak" />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <Box sx={{ textAlign: 'center', py: 4 }}>
+                        <Typography variant="body2" sx={{ color: '#475569' }}>No streak data yet.</Typography>
+                      </Box>
+                    );
+                  })()}
+                </ChartCard>
               </Grid>
             )}
           </Grid>
-        </Box>
+        )}
       </Container>
-    </BackgroundBox>
+    </Box>
   );
 }
 
-export default Analytics; 
+export default Analytics;

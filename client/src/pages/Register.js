@@ -1,368 +1,190 @@
 import React, { useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
-  Container,
-  Paper,
-  Typography,
-  TextField,
-  Button,
-  Box,
-  Link,
-  Alert,
-  CircularProgress,
-  Zoom,
-  Fade,
-  Grow,
-  useTheme,
-  alpha,
-  InputAdornment,
-  IconButton
+  Typography, TextField, Button, Box, Link,
+  Alert, CircularProgress, InputAdornment, IconButton,
 } from '@mui/material';
 import {
-  Person as PersonIcon,
-  Email as EmailIcon,
-  Lock as LockIcon,
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon,
-  HowToReg as RegisterIcon
+  Person as PersonIcon, Email as EmailIcon, Lock as LockIcon,
+  Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon,
+  ArrowForward as ArrowForwardIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
-import { styled } from '@mui/material/styles';
-
-const BackgroundBox = styled(Box)(({ theme }) => ({
-  minHeight: '100vh',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  background: `linear-gradient(135deg, ${alpha(theme.palette.secondary.dark, 0.95)} 0%, ${alpha(theme.palette.primary.dark, 0.95)} 100%)`,
-  position: 'relative',
-  overflow: 'hidden',
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: `radial-gradient(circle at 50% 50%, ${alpha(theme.palette.secondary.main, 0.1)} 0%, transparent 50%)`,
-    animation: 'pulse 8s ease-in-out infinite',
-  },
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-    opacity: 0.5,
-    animation: 'slide 20s linear infinite',
-  },
-  '@keyframes pulse': {
-    '0%': {
-      transform: 'scale(1)',
-      opacity: 0.5,
-    },
-    '50%': {
-      transform: 'scale(1.5)',
-      opacity: 0.2,
-    },
-    '100%': {
-      transform: 'scale(1)',
-      opacity: 0.5,
-    },
-  },
-  '@keyframes slide': {
-    '0%': {
-      backgroundPosition: '0 0',
-    },
-    '100%': {
-      backgroundPosition: '100px 100px',
-    },
-  },
-}));
-
-const StyledPaper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(4),
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  background: `linear-gradient(135deg, ${alpha(theme.palette.secondary.light, 0.1)} 0%, ${alpha(theme.palette.secondary.main, 0.05)} 100%)`,
-  borderRadius: theme.spacing(2),
-  boxShadow: `0 8px 32px ${alpha(theme.palette.secondary.main, 0.1)}`,
-  backdropFilter: 'blur(8px)',
-  border: `1px solid ${alpha(theme.palette.secondary.main, 0.1)}`,
-  transition: 'all 0.3s ease-in-out',
-  '&:hover': {
-    boxShadow: `0 12px 48px ${alpha(theme.palette.secondary.main, 0.15)}`,
-    transform: 'translateY(-4px)',
-  },
-}));
-
-const StyledTextField = styled(TextField)(({ theme }) => ({
-  '& .MuiOutlinedInput-root': {
-    transition: 'all 0.3s ease-in-out',
-    '&:hover': {
-      '& .MuiOutlinedInput-notchedOutline': {
-        borderColor: theme.palette.secondary.main,
-      },
-    },
-    '&.Mui-focused': {
-      '& .MuiOutlinedInput-notchedOutline': {
-        borderWidth: 2,
-      },
-    },
-  },
-}));
-
-const StyledButton = styled(Button)(({ theme }) => ({
-  borderRadius: theme.spacing(3),
-  textTransform: 'none',
-  padding: theme.spacing(1.5, 4),
-  transition: 'all 0.3s ease-in-out',
-  '&:hover': {
-    transform: 'translateY(-2px)',
-    boxShadow: `0 6px 20px ${alpha(theme.palette.secondary.main, 0.3)}`,
-  },
-}));
 
 function Register() {
-  const theme = useTheme();
   const navigate = useNavigate();
   const { register } = useAuth();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [formError, setFormError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
-
-    if (formData.password !== formData.confirmPassword) {
-      setFormError('Passwords do not match');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setFormError('Password must be at least 6 characters long');
-      return;
-    }
-
+    if (formData.password !== formData.confirmPassword) { setFormError('Passwords do not match'); return; }
+    if (formData.password.length < 6) { setFormError('Password must be at least 6 characters'); return; }
     setLoading(true);
-
     try {
       await register(formData.name, formData.email, formData.password);
       navigate('/');
-    } catch (error) {
-      setFormError(error.response?.data?.message || 'Failed to register');
+    } catch (err) {
+      setFormError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <BackgroundBox>
-      <Container component="main" maxWidth="xs">
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            py: 4,
-            position: 'relative',
-            zIndex: 1,
-          }}
-        >
-          <Zoom in timeout={1000}>
-            <StyledPaper elevation={3}>
-              <Fade in timeout={1500}>
-                <Typography
-                  component="h1"
-                  variant="h4"
-                  sx={{
-                    mb: 3,
-                    fontWeight: 'bold',
-                    background: `linear-gradient(45deg, ${theme.palette.secondary.main}, ${theme.palette.primary.main})`,
-                    backgroundClip: 'text',
-                    WebkitBackgroundClip: 'text',
-                    color: 'transparent',
-                  }}
-                >
-                  Create Account
+    <Box sx={{ minHeight: '100vh', display: 'flex', bgcolor: '#0D0D1A' }}>
+      {/* Left Hero Panel */}
+      <Box sx={{
+        display: { xs: 'none', md: 'flex' },
+        width: '45%', flexDirection: 'column', justifyContent: 'center',
+        px: 8, position: 'relative', overflow: 'hidden',
+        '&::before': {
+          content: '""', position: 'absolute', inset: 0,
+          background: 'linear-gradient(135deg, rgba(99,102,241,0.2) 0%, rgba(139,92,246,0.12) 100%)',
+          zIndex: 0,
+        },
+      }}>
+        <Box sx={{ position: 'relative', zIndex: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 6 }}>
+            <Box sx={{
+              width: 44, height: 44, borderRadius: '14px',
+              background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 22, boxShadow: '0 4px 20px rgba(99,102,241,0.5)',
+            }}>✦</Box>
+            <Typography variant="h5" sx={{ fontWeight: 800, color: '#F1F5F9' }}>TrackWise</Typography>
+          </Box>
+
+          <Typography variant="h3" sx={{
+            fontWeight: 800, color: '#F1F5F9', lineHeight: 1.15, mb: 2,
+          }}>
+            Your journey to{' '}
+            <Box component="span" sx={{
+              background: 'linear-gradient(135deg, #818CF8, #C084FC)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+            }}>
+              better habits
+            </Box>{' '}starts here
+          </Typography>
+
+          <Typography sx={{ color: '#64748B', lineHeight: 1.7, maxWidth: 340, fontSize: '1rem' }}>
+            Create your free account and begin tracking the habits that matter most to you.
+          </Typography>
+
+          {/* Stats row */}
+          <Box sx={{ display: 'flex', gap: 3, mt: 6 }}>
+            {[{ val: '10K+', label: 'Active Users' }, { val: '500K+', label: 'Habits Tracked' }, { val: '98%', label: 'Satisfaction' }].map(s => (
+              <Box key={s.label}>
+                <Typography sx={{ fontWeight: 800, fontSize: '1.6rem', background: 'linear-gradient(135deg, #818CF8, #C084FC)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  {s.val}
                 </Typography>
-              </Fade>
-
-              {formError && (
-                <Fade in timeout={500}>
-                  <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
-                    {formError}
-                  </Alert>
-                </Fade>
-              )}
-
-              <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
-                <Grow in timeout={1000} style={{ transitionDelay: '100ms' }}>
-                  <StyledTextField
-                    margin="normal"
-                    required
-                    fullWidth
-                    id="name"
-                    label="Full Name"
-                    name="name"
-                    autoComplete="name"
-                    autoFocus
-                    value={formData.name}
-                    onChange={handleChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <PersonIcon color="secondary" />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grow>
-
-                <Grow in timeout={1000} style={{ transitionDelay: '200ms' }}>
-                  <StyledTextField
-                    margin="normal"
-                    required
-                    fullWidth
-                    id="email"
-                    label="Email Address"
-                    name="email"
-                    autoComplete="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <EmailIcon color="secondary" />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grow>
-
-                <Grow in timeout={1000} style={{ transitionDelay: '300ms' }}>
-                  <StyledTextField
-                    margin="normal"
-                    required
-                    fullWidth
-                    name="password"
-                    label="Password"
-                    type={showPassword ? 'text' : 'password'}
-                    id="password"
-                    autoComplete="new-password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <LockIcon color="secondary" />
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => setShowPassword(!showPassword)}
-                            edge="end"
-                          >
-                            {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grow>
-
-                <Grow in timeout={1000} style={{ transitionDelay: '400ms' }}>
-                  <StyledTextField
-                    margin="normal"
-                    required
-                    fullWidth
-                    name="confirmPassword"
-                    label="Confirm Password"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    id="confirmPassword"
-                    autoComplete="new-password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <LockIcon color="secondary" />
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            edge="end"
-                          >
-                            {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grow>
-
-                <Grow in timeout={1000} style={{ transitionDelay: '500ms' }}>
-                  <StyledButton
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    color="secondary"
-                    disabled={loading}
-                    startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <RegisterIcon />}
-                    sx={{ mt: 3, mb: 2 }}
-                  >
-                    {loading ? 'Creating Account...' : 'Sign Up'}
-                  </StyledButton>
-                </Grow>
-
-                <Fade in timeout={1000} style={{ transitionDelay: '600ms' }}>
-                  <Box sx={{ textAlign: 'center' }}>
-                    <Link
-                      component={RouterLink}
-                      to="/login"
-                      variant="body2"
-                      sx={{
-                        color: theme.palette.secondary.main,
-                        textDecoration: 'none',
-                        '&:hover': {
-                          textDecoration: 'underline',
-                        },
-                      }}
-                    >
-                      Already have an account? Sign In
-                    </Link>
-                  </Box>
-                </Fade>
+                <Typography variant="caption" sx={{ color: '#475569', fontWeight: 500 }}>{s.label}</Typography>
               </Box>
-            </StyledPaper>
-          </Zoom>
+            ))}
+          </Box>
         </Box>
-      </Container>
-    </BackgroundBox>
+        <Box sx={{
+          position: 'absolute', top: '-100px', right: '-100px', width: '400px', height: '400px',
+          borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%)',
+        }} />
+      </Box>
+
+      {/* Right Form */}
+      <Box sx={{
+        flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        px: { xs: 3, sm: 6, md: 8 },
+        '&::before': {
+          content: '""', position: 'absolute', left: '45%', top: '10%', bottom: '10%',
+          width: '1px', background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.1), transparent)',
+          display: { xs: 'none', md: 'block' },
+        },
+      }}>
+        <Box sx={{ width: '100%', maxWidth: 420 }}>
+          <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', gap: 1.5, mb: 5, justifyContent: 'center' }}>
+            <Box sx={{
+              width: 40, height: 40, borderRadius: '12px',
+              background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
+            }}>✦</Box>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#F1F5F9' }}>TrackWise</Typography>
+          </Box>
+
+          <Typography variant="h4" sx={{ fontWeight: 800, color: '#F1F5F9', mb: 0.5, letterSpacing: '-0.5px' }}>
+            Create account
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#64748B', mb: 4 }}>
+            Free forever. No credit card required.
+          </Typography>
+
+          {formError && (
+            <Alert severity="error" sx={{ mb: 3, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#FCA5A5' }}>
+              {formError}
+            </Alert>
+          )}
+
+          <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField required fullWidth label="Full Name" name="name" autoFocus
+              value={formData.name} onChange={handleChange}
+              InputProps={{ startAdornment: <InputAdornment position="start"><PersonIcon sx={{ color: '#6366F1', fontSize: 20 }} /></InputAdornment> }} />
+
+            <TextField required fullWidth label="Email Address" name="email" autoComplete="email"
+              value={formData.email} onChange={handleChange}
+              InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon sx={{ color: '#6366F1', fontSize: 20 }} /></InputAdornment> }} />
+
+            <TextField required fullWidth label="Password" name="password"
+              type={showPassword ? 'text' : 'password'} autoComplete="new-password"
+              value={formData.password} onChange={handleChange}
+              InputProps={{
+                startAdornment: <InputAdornment position="start"><LockIcon sx={{ color: '#6366F1', fontSize: 20 }} /></InputAdornment>,
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small" sx={{ color: '#64748B' }}>
+                      {showPassword ? <VisibilityOffIcon sx={{ fontSize: 20 }} /> : <VisibilityIcon sx={{ fontSize: 20 }} />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }} />
+
+            <TextField required fullWidth label="Confirm Password" name="confirmPassword"
+              type={showConfirm ? 'text' : 'password'} autoComplete="new-password"
+              value={formData.confirmPassword} onChange={handleChange}
+              InputProps={{
+                startAdornment: <InputAdornment position="start"><LockIcon sx={{ color: '#6366F1', fontSize: 20 }} /></InputAdornment>,
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowConfirm(!showConfirm)} edge="end" size="small" sx={{ color: '#64748B' }}>
+                      {showConfirm ? <VisibilityOffIcon sx={{ fontSize: 20 }} /> : <VisibilityIcon sx={{ fontSize: 20 }} />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }} />
+
+            <Button type="submit" fullWidth variant="contained" disabled={loading}
+              endIcon={loading ? <CircularProgress size={18} color="inherit" /> : <ArrowForwardIcon />}
+              sx={{ mt: 1, py: 1.5, fontSize: '1rem' }}>
+              {loading ? 'Creating Account…' : 'Get Started Free'}
+            </Button>
+          </Box>
+
+          <Box sx={{ textAlign: 'center', mt: 3 }}>
+            <Typography variant="body2" sx={{ color: '#475569' }}>
+              Already have an account?{' '}
+              <Link component={RouterLink} to="/login" sx={{ color: '#818CF8', fontWeight: 700, textDecoration: 'none', '&:hover': { color: '#A78BFA' } }}>
+                Sign in →
+              </Link>
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 }
 
-export default Register; 
+export default Register;

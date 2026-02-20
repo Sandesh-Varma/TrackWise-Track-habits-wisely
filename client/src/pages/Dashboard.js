@@ -1,573 +1,515 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Container,
-  Grid,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  IconButton,
-  Box,
-  CircularProgress,
-  Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Paper,
-  Avatar,
-  Zoom,
-  Fade,
-  Grow,
-  Collapse,
-  Tooltip,
-  useTheme,
-  alpha
+  Grid, Typography, Button, IconButton, Box,
+  CircularProgress, Alert, Dialog, DialogTitle, DialogContent,
+  DialogActions, TextField, Avatar, Tooltip, Chip, LinearProgress,
 } from '@mui/material';
 import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
+  Add as AddIcon, Delete as DeleteIcon,
   CheckCircle as CheckCircleIcon,
-  Logout as LogoutIcon,
-  EmojiEvents as TrophyIcon,
-  TrendingUp as TrendingUpIcon,
-  CalendarToday as CalendarIcon,
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
-  Analytics as AnalyticsIcon
+  EmojiEvents as TrophyIcon, TrendingUp as TrendingUpIcon,
+  CalendarToday as CalendarIcon, BarChart as AnalyticsIcon,
+  LocalFireDepartment as FireIcon, FormatQuote as QuoteIcon,
+  OpenInNew as OpenInNewIcon,
 } from '@mui/icons-material';
 import { useHabits } from '../hooks/useHabits';
 import { useAuth } from '../context/AuthContext';
-import { styled } from '@mui/material/styles';
-
-const BackgroundBox = styled(Box)(({ theme }) => ({
-  minHeight: '100vh',
-  background: `linear-gradient(135deg, ${alpha(theme.palette.primary.dark, 0.95)} 0%, ${alpha(theme.palette.secondary.dark, 0.95)} 100%)`,
-  position: 'relative',
-  overflow: 'hidden',
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: `radial-gradient(circle at 50% 50%, ${alpha(theme.palette.primary.main, 0.1)} 0%, transparent 50%)`,
-    animation: 'pulse 8s ease-in-out infinite',
-  },
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-    opacity: 0.5,
-    animation: 'slide 20s linear infinite',
-  },
-  '@keyframes pulse': {
-    '0%': {
-      transform: 'scale(1)',
-      opacity: 0.5,
-    },
-    '50%': {
-      transform: 'scale(1.5)',
-      opacity: 0.2,
-    },
-    '100%': {
-      transform: 'scale(1)',
-      opacity: 0.5,
-    },
-  },
-  '@keyframes slide': {
-    '0%': {
-      backgroundPosition: '0 0',
-    },
-    '100%': {
-      backgroundPosition: '100px 100px',
-    },
-  },
-}));
-
-// Styled components
-const StyledCard = styled(Card)(({ theme }) => ({
-  transition: 'all 0.3s ease-in-out',
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: theme.shadows[8],
-  },
-}));
-
-const StatCard = styled(Paper)(({ theme }) => ({
-  transition: 'all 0.3s ease-in-out',
-  '&:hover': {
-    transform: 'scale(1.02)',
-    boxShadow: theme.shadows[4],
-  },
-}));
-
-const AnimatedAvatar = styled(Avatar)(({ theme }) => ({
-  transition: 'all 0.3s ease-in-out',
-  '&:hover': {
-    transform: 'scale(1.1) rotate(5deg)',
-  },
-}));
-
-const ExpandButton = styled(IconButton)(({ theme }) => ({
-  transition: 'transform 0.3s ease-in-out',
-  '&.expanded': {
-    transform: 'rotate(180deg)',
-  },
-}));
 
 const MOTIVATIONAL_QUOTES = [
-  "The best way to predict the future is to create it.",
-  "The only limit to our realization of tomorrow will be our doubts of today.",
-  "It always seems impossible until it's done.",
-  "Success is not final, failure is not fatal: it is the courage to continue that counts.",
-  "Believe you can and you're halfway there.",
-  "The future belongs to those who believe in the beauty of their dreams.",
-  "Do not wait for a leader; do it alone, person to person.",
-  "What you get by achieving your goals is not as important as what you become by achieving your goals.",
-  "The mind is everything. What you think you become.",
-  "The only true wisdom is in knowing you know nothing.",
-  "Strive not to be a success, but rather to be of value.",
-  "The unexamined life is not worth living.",
-  "Change your thoughts and you change your world.",
-  "Happiness is not something ready made. It comes from your own actions.",
-  "It is better to travel well than to arrive.",
-  "Life is 10% what happens to you and 90% how you react to it.",
+  "Small consistent actions lead to extraordinary results.",
+  "The secret of getting ahead is getting started.",
+  "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
   "The journey of a thousand miles begins with a single step.",
   "Either you run the day, or the day runs you.",
-  "The only way to do great work is to love what you do.",
-  "If you are not willing to risk the usual, you will have to settle for the ordinary."
+  "Success is the sum of small efforts repeated day in and day out.",
+  "Your future is created by what you do today, not tomorrow.",
+  "Discipline is the bridge between goals and accomplishment.",
 ];
 
+// ─── Stat Card ─────────────────────────────────────────────────────────────
+function StatCard({ value, label, icon, gradient, glowColor }) {
+  return (
+    <Box
+      sx={{
+        background: 'rgba(255,255,255,0.05)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: '24px',
+        p: { xs: 3, md: 4 },
+        position: 'relative',
+        overflow: 'hidden',
+        transition: 'all 0.25s ease',
+        cursor: 'default',
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          border: `1px solid ${glowColor}50`,
+          boxShadow: `0 16px 48px ${glowColor}25`,
+        },
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0, left: 0, right: 0, height: '4px',
+          background: gradient,
+          borderRadius: '24px 24px 0 0',
+        },
+      }}
+    >
+      <Box
+        sx={{
+          width: 56, height: 56, borderRadius: '16px',
+          background: gradient,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: `0 6px 20px ${glowColor}40`,
+          mb: 2.5,
+          '& svg': { fontSize: 28, color: '#fff' },
+        }}
+      >
+        {icon}
+      </Box>
+      <Typography sx={{ fontWeight: 800, fontSize: '2.6rem', color: '#F1F5F9', lineHeight: 1, mb: 0.8 }}>
+        {value}
+      </Typography>
+      <Typography sx={{ color: '#64748B', fontWeight: 600, fontSize: '0.95rem', letterSpacing: '0.02em' }}>
+        {label}
+      </Typography>
+    </Box>
+  );
+}
+
+// ─── Habit Card ─────────────────────────────────────────────────────────────
+function HabitCard({ habit, onLog, onView, onDelete }) {
+  const done = habit.lastCompletedDate
+    && new Date(habit.lastCompletedDate).toDateString() === new Date().toDateString();
+
+  const streakColor = habit.streakCount >= 7
+    ? '#F59E0B'
+    : habit.streakCount >= 3 ? '#818CF8' : '#64748B';
+
+  return (
+    <Box
+      sx={{
+        background: 'rgba(255,255,255,0.04)',
+        backdropFilter: 'blur(20px)',
+        border: done ? '1px solid rgba(16,185,129,0.35)' : '1px solid rgba(255,255,255,0.08)',
+        borderRadius: '22px',
+        p: 3.5,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
+        overflow: 'hidden',
+        transition: 'all 0.25s ease',
+        '&:hover': {
+          transform: 'translateY(-5px)',
+          boxShadow: done
+            ? '0 20px 56px rgba(16,185,129,0.15)'
+            : '0 20px 56px rgba(99,102,241,0.15)',
+          border: done
+            ? '1px solid rgba(16,185,129,0.55)'
+            : '1px solid rgba(99,102,241,0.4)',
+        },
+        /* Left accent bar */
+        '&::before': {
+          content: '""',
+          position: 'absolute', left: 0, top: 20, bottom: 20, width: '4px',
+          background: done
+            ? 'linear-gradient(to bottom, #10B981, #34D399)'
+            : 'linear-gradient(to bottom, #6366F1, #8B5CF6)',
+          borderRadius: '0 4px 4px 0',
+        },
+      }}
+    >
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, pl: 1.5 }}>
+        <Box sx={{ flex: 1, pr: 1 }}>
+          <Typography sx={{ fontWeight: 700, fontSize: '1.15rem', color: '#F1F5F9', lineHeight: 1.3, mb: 0.5 }}>
+            {habit.name}
+          </Typography>
+          {habit.description && (
+            <Typography sx={{ fontSize: '0.85rem', color: '#475569', lineHeight: 1.5 }}>
+              {habit.description}
+            </Typography>
+          )}
+        </Box>
+        <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
+          <Tooltip title="View details" arrow>
+            <IconButton size="small" onClick={onView}
+              sx={{ color: '#475569', p: 0.8, '&:hover': { color: '#818CF8', bgcolor: 'rgba(99,102,241,0.12)' } }}>
+              <OpenInNewIcon sx={{ fontSize: 17 }} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete" arrow>
+            <IconButton size="small" onClick={onDelete}
+              sx={{ color: '#475569', p: 0.8, '&:hover': { color: '#F87171', bgcolor: 'rgba(239,68,68,0.12)' } }}>
+              <DeleteIcon sx={{ fontSize: 17 }} />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Box>
+
+      {/* Streak row */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2.5, pl: 1.5 }}>
+        <FireIcon sx={{ fontSize: 22, color: streakColor }} />
+        <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: streakColor }}>
+          {habit.streakCount} day{habit.streakCount !== 1 ? 's' : ''} streak
+        </Typography>
+        {done && (
+          <Chip
+            label="✓ Done today"
+            size="small"
+            sx={{
+              ml: 'auto',
+              bgcolor: 'rgba(16,185,129,0.15)',
+              color: '#34D399',
+              border: '1px solid rgba(16,185,129,0.3)',
+              fontWeight: 700,
+              fontSize: '0.78rem',
+              height: 26,
+            }}
+          />
+        )}
+      </Box>
+
+      {/* Log button */}
+      <Box sx={{ mt: 'auto', pl: 1.5 }}>
+        <Button
+          fullWidth variant={done ? 'outlined' : 'contained'} size="medium"
+          startIcon={<CheckCircleIcon />}
+          onClick={onLog}
+          sx={{
+            borderRadius: '12px',
+            py: 1.2,
+            fontWeight: 700,
+            fontSize: '0.92rem',
+            ...(done ? {
+              borderColor: 'rgba(16,185,129,0.4)',
+              color: '#34D399',
+              background: 'rgba(16,185,129,0.08)',
+              boxShadow: 'none',
+              '&:hover': { borderColor: '#10B981', background: 'rgba(16,185,129,0.18)' },
+            } : {}),
+          }}
+        >
+          {done ? 'Log Again' : 'Log Today'}
+        </Button>
+      </Box>
+    </Box>
+  );
+}
+
+// ─── Dashboard ───────────────────────────────────────────────────────────────
 function Dashboard() {
-  const theme = useTheme();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const {
-    habits,
-    loading,
-    error,
-    deleteHabit,
-    logHabit
-  } = useHabits();
-
+  const { habits, loading, error, deleteHabit, logHabit } = useHabits();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [habitToDelete, setHabitToDelete] = useState(null);
   const [logDialogOpen, setLogDialogOpen] = useState(false);
   const [habitToLog, setHabitToLog] = useState(null);
   const [logNotes, setLogNotes] = useState('');
-  const [expandedHabit, setExpandedHabit] = useState(null);
-  const [dailyQuote, setDailyQuote] = useState('');
+  const [quote, setQuote] = useState('');
 
   useEffect(() => {
-    const today = new Date();
-    const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
-    const quoteIndex = dayOfYear % MOTIVATIONAL_QUOTES.length;
-    setDailyQuote(MOTIVATIONAL_QUOTES[quoteIndex]);
+    const d = new Date();
+    const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000);
+    setQuote(MOTIVATIONAL_QUOTES[day % MOTIVATIONAL_QUOTES.length]);
   }, []);
 
-  const handleDeleteClick = (habit) => {
-    setHabitToDelete(habit);
-    setDeleteDialogOpen(true);
-  };
-
   const handleDeleteConfirm = async () => {
-    try {
-      await deleteHabit(habitToDelete._id);
-      setDeleteDialogOpen(false);
-      setHabitToDelete(null);
-    } catch (error) {
-      console.error('Failed to delete habit:', error);
-    }
+    try { await deleteHabit(habitToDelete._id); setDeleteDialogOpen(false); }
+    catch (e) { console.error(e); }
   };
-
-  const handleLogClick = (habit) => {
-    setHabitToLog(habit);
-    setLogDialogOpen(true);
-  };
-
   const handleLogConfirm = async () => {
-    try {
-      await logHabit(habitToLog._id, logNotes);
-      setLogDialogOpen(false);
-      setHabitToLog(null);
-      setLogNotes('');
-    } catch (error) {
-      console.error('Failed to log habit:', error);
-    }
+    try { await logHabit(habitToLog._id, logNotes); setLogDialogOpen(false); setLogNotes(''); }
+    catch (e) { console.error(e); }
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
-  // Calculate dashboard statistics
   const totalHabits = habits.length;
-  const totalStreaks = habits.reduce((sum, habit) => sum + habit.streakCount, 0);
-  const longestStreak = habits.reduce((max, habit) => Math.max(max, habit.streakCount), 0);
-  const completedToday = habits.filter(habit => {
-    const today = new Date().toDateString();
-    return habit.lastCompletedDate && new Date(habit.lastCompletedDate).toDateString() === today;
-  }).length;
+  const completedToday = habits.filter(h =>
+    h.lastCompletedDate && new Date(h.lastCompletedDate).toDateString() === new Date().toDateString()
+  ).length;
+  const longestStreak = habits.reduce((max, h) => Math.max(max, h.streakCount), 0);
+  const completionRate = totalHabits > 0 ? Math.round((completedToday / totalHabits) * 100) : 0;
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
-  const toggleHabitExpand = (habitId) => {
-    setExpandedHabit(expandedHabit === habitId ? null : habitId);
-  };
-
-  if (loading) {
-    return (
-      <BackgroundBox>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-          <CircularProgress size={60} thickness={4} />
-        </Box>
-      </BackgroundBox>
-    );
-  }
+  if (loading) return (
+    <Box sx={{ minHeight: '100vh', bgcolor: '#0D0D1A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ textAlign: 'center' }}>
+        <CircularProgress size={56} sx={{ color: '#6366F1', mb: 2 }} />
+        <Typography sx={{ color: '#475569', fontSize: '1.1rem' }}>Loading your habits…</Typography>
+      </Box>
+    </Box>
+  );
 
   return (
-    <BackgroundBox>
-      <Container maxWidth="lg">
-        <Box sx={{ mt: 4, mb: 4, position: 'relative', zIndex: 1, color: 'white' }}>
-          {/* Header Section */}
-          <Fade in timeout={1000}>
-            <Grid container justifyContent="space-between" alignItems="center" mb={4}>
-              <Grid item>
-                <Box display="flex" alignItems="center" gap={2}>
-                  <AnimatedAvatar 
-                    sx={{ 
-                      bgcolor: theme.palette.primary.main,
-                      width: 56,
-                      height: 56,
-                      fontSize: '1.5rem'
-                    }}
-                  >
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </AnimatedAvatar>
-                  <Box>
-                    <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold' }}>
-                      Welcome, {user?.name}!
-                    </Typography>
-                    <Typography color="textSecondary" sx={{ fontSize: '1.1rem' }}>
-                      Track your habits and build streaks
-                    </Typography>
-                  </Box>
-                </Box>
-              </Grid>
-              <Grid item>
-                <Box display="flex" gap={2}>
-                  <Tooltip title="View Analytics" arrow>
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      startIcon={<AnalyticsIcon />}
-                      onClick={() => navigate('/analytics')}
-                      sx={{
-                        borderRadius: '20px',
-                        textTransform: 'none',
-                        px: 3,
-                        py: 1,
-                        boxShadow: theme.shadows[4],
-                        '&:hover': {
-                          boxShadow: theme.shadows[8],
-                        },
-                      }}
-                    >
-                      Analytics
-                    </Button>
-                  </Tooltip>
-                  <Tooltip title="Add New Habit" arrow>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      startIcon={<AddIcon />}
-                      onClick={() => navigate('/habits/new')}
-                      sx={{
-                        borderRadius: '20px',
-                        textTransform: 'none',
-                        px: 3,
-                        py: 1,
-                        boxShadow: theme.shadows[4],
-                        '&:hover': {
-                          boxShadow: theme.shadows[8],
-                        },
-                      }}
-                    >
-                      Add Habit
-                    </Button>
-                  </Tooltip>
-                  <Tooltip title="Logout" arrow>
-                    <Button
-                      variant="outlined"
-                      color="inherit"
-                      startIcon={<LogoutIcon />}
-                      onClick={handleLogout}
-                      sx={{
-                        borderRadius: '20px',
-                        textTransform: 'none',
-                        px: 3,
-                        py: 1,
-                      }}
-                    >
-                      Logout
-                    </Button>
-                  </Tooltip>
-                </Box>
-              </Grid>
-            </Grid>
-          </Fade>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#0D0D1A' }}>
 
-          {error && (
-            <Fade in timeout={500}>
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            </Fade>
-          )}
+      {/* ── Navbar ─────────────────────────────────────────────────────── */}
+      <Box sx={{
+        position: 'sticky', top: 0, zIndex: 100,
+        background: 'rgba(13,13,26,0.85)',
+        backdropFilter: 'blur(24px)',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        px: { xs: 3, md: 6 },
+        py: 2,
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* Brand */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={{
+              width: 44, height: 44, borderRadius: '13px',
+              background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 22, boxShadow: '0 4px 18px rgba(99,102,241,0.45)',
+            }}>✦</Box>
+            <Typography sx={{ fontWeight: 800, fontSize: '1.4rem', color: '#F1F5F9', letterSpacing: '-0.3px' }}>
+              TrackWise
+            </Typography>
+          </Box>
 
-          {/* Daily Motivation Section */}
-          <Fade in timeout={1200}>
-            <Paper 
-              elevation={3} 
+          {/* Actions */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Button
+              variant="outlined"
+              startIcon={<AnalyticsIcon />}
+              onClick={() => navigate('/analytics')}
               sx={{
-                p: 3,
-                mb: 4,
-                textAlign: 'center',
-                background: `linear-gradient(45deg, ${theme.palette.success.dark} 30%, ${theme.palette.success.main} 90%)`,
-                color: 'white',
-                borderRadius: 2,
-                boxShadow: `0 8px 32px ${alpha(theme.palette.success.main, 0.2)}`,
+                borderColor: 'rgba(255,255,255,0.14)', color: '#94A3B8',
+                borderRadius: '12px', px: 2.5, py: 1,
+                fontSize: '0.95rem', fontWeight: 600,
+                '&:hover': { borderColor: '#6366F1', color: '#818CF8', bgcolor: 'rgba(99,102,241,0.1)' },
               }}
             >
-              <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
-                Daily Motivation
-              </Typography>
-              <Typography variant="h6" fontStyle="italic">
-                "{dailyQuote}"
-              </Typography>
-            </Paper>
-          </Fade>
-
-          {/* Quick Stats Section */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            {[
-              { value: totalHabits, label: 'Total Habits', icon: <TrophyIcon />, color: 'primary.light' },
-              { value: totalStreaks, label: 'Total Streaks', icon: <TrendingUpIcon />, color: 'success.light' },
-              { value: longestStreak, label: 'Longest Streak', icon: <TrophyIcon />, color: 'warning.light' },
-              { value: completedToday, label: 'Completed Today', icon: <CalendarIcon />, color: 'info.light' }
-            ].map((stat, index) => (
-              <Grid item xs={12} sm={6} md={3} key={stat.label}>
-                <Grow in timeout={1000} style={{ transitionDelay: `${index * 100}ms` }}>
-                  <StatCard elevation={2} sx={{ p: 2 }}>
-                    <Box display="flex" alignItems="center" gap={2}>
-                      <AnimatedAvatar sx={{ bgcolor: stat.color }}>
-                        {stat.icon}
-                      </AnimatedAvatar>
-                      <Box>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                          {stat.value}
-                        </Typography>
-                        <Typography color="textSecondary">
-                          {stat.label}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </StatCard>
-                </Grow>
-              </Grid>
-            ))}
-          </Grid>
-
-          {/* Habits Grid */}
-          <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
-            Your Habits
-          </Typography>
-          <Grid container spacing={3}>
-            {habits.map((habit, index) => (
-              <Grid item xs={12} sm={6} md={4} key={habit._id}>
-                <Grow in timeout={1000} style={{ transitionDelay: `${index * 100}ms` }}>
-                  <StyledCard>
-                    <CardContent>
-                      <Box display="flex" justifyContent="space-between" alignItems="center">
-                        <Typography variant="h6" component="h2" sx={{ fontWeight: 'bold' }}>
-                          {habit.name}
-                        </Typography>
-                        <Box>
-                          <Tooltip title="Edit Habit" arrow>
-                            <IconButton
-                              size="small"
-                              onClick={() => navigate(`/habits/${habit._id}/edit`)}
-                              sx={{ '&:hover': { color: theme.palette.primary.main } }}
-                            >
-                              <EditIcon />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete Habit" arrow>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleDeleteClick(habit)}
-                              sx={{ '&:hover': { color: theme.palette.error.main } }}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title={expandedHabit === habit._id ? "Show Less" : "Show More"} arrow>
-                            <ExpandButton
-                              size="small"
-                              onClick={() => toggleHabitExpand(habit._id)}
-                              className={expandedHabit === habit._id ? 'expanded' : ''}
-                            >
-                              {expandedHabit === habit._id ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                            </ExpandButton>
-                          </Tooltip>
-                        </Box>
-                      </Box>
-
-                      <Typography color="textSecondary" gutterBottom>
-                        {habit.description}
-                      </Typography>
-
-                      <Box display="flex" alignItems="center" mt={2}>
-                        <Typography variant="h4" color="primary" mr={1} sx={{ fontWeight: 'bold' }}>
-                          {habit.streakCount}
-                        </Typography>
-                        <Typography color="textSecondary">
-                          day{habit.streakCount !== 1 ? 's' : ''} streak
-                        </Typography>
-                      </Box>
-
-                      <Collapse in={expandedHabit === habit._id}>
-                        <Box sx={{ mt: 2, pt: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
-                          <Typography variant="body2" color="textSecondary" gutterBottom>
-                            <strong>Frequency:</strong> {habit.frequency}
-                          </Typography>
-                          <Typography variant="body2" color="textSecondary">
-                            <strong>Reminder Time:</strong> {habit.reminderTime}
-                          </Typography>
-                        </Box>
-                      </Collapse>
-
-                      <Button
-                        fullWidth
-                        variant="outlined"
-                        color="primary"
-                        startIcon={<CheckCircleIcon />}
-                        onClick={() => handleLogClick(habit)}
-                        sx={{
-                          mt: 2,
-                          borderRadius: '20px',
-                          textTransform: 'none',
-                          '&:hover': {
-                            backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                          },
-                        }}
-                      >
-                        Log Today
-                      </Button>
-                    </CardContent>
-                  </StyledCard>
-                </Grow>
-              </Grid>
-            ))}
-          </Grid>
-
-          {habits.length === 0 && (
-            <Zoom in timeout={1000}>
-              <Paper 
-                sx={{ 
-                  p: 4, 
-                  textAlign: 'center', 
-                  mt: 4,
-                  borderRadius: 2,
-                  background: `linear-gradient(45deg, ${theme.palette.primary.light} 30%, ${theme.palette.primary.main} 90%)`,
-                  color: 'white'
+              Analytics
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => navigate('/habits/new')}
+              sx={{ borderRadius: '12px', px: 2.5, py: 1, fontSize: '0.95rem', fontWeight: 700 }}
+            >
+              New Habit
+            </Button>
+            <Tooltip title={`${user?.name} — Logout`} arrow>
+              <Avatar
+                onClick={() => { logout(); navigate('/login'); }}
+                sx={{
+                  width: 42, height: 42, cursor: 'pointer', fontWeight: 800, fontSize: '1rem',
+                  background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+                  border: '2px solid rgba(99,102,241,0.45)',
+                  transition: 'all 0.2s',
+                  '&:hover': { transform: 'scale(1.08)', borderColor: '#818CF8' },
                 }}
               >
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-                  No habits yet
-                </Typography>
-                <Typography paragraph>
-                  Start by adding your first habit to begin tracking your progress!
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  startIcon={<AddIcon />}
-                  onClick={() => navigate('/habits/new')}
-                  sx={{
-                    borderRadius: '20px',
-                    textTransform: 'none',
-                    px: 4,
-                    py: 1,
-                    boxShadow: theme.shadows[4],
-                    '&:hover': {
-                      boxShadow: theme.shadows[8],
-                    },
-                  }}
-                >
-                  Create Your First Habit
-                </Button>
-              </Paper>
-            </Zoom>
+                {user?.name?.charAt(0).toUpperCase()}
+              </Avatar>
+            </Tooltip>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* ── Page body ──────────────────────────────────────────────────── */}
+      <Box sx={{ px: { xs: 3, md: 6, xl: 10 }, py: 5 }}>
+
+        {/* Welcome */}
+        <Box sx={{ mb: 6 }}>
+          <Typography sx={{
+            fontWeight: 800, fontSize: { xs: '2rem', md: '2.8rem' },
+            color: '#F1F5F9', letterSpacing: '-0.5px', mb: 1.5, lineHeight: 1.2,
+          }}>
+            {greeting},{' '}
+            <Box component="span" sx={{
+              background: 'linear-gradient(135deg, #818CF8, #C084FC)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+            }}>
+              {user?.name?.split(' ')[0]}
+            </Box>
+            {' '}👋
+          </Typography>
+
+          <Box sx={{
+            display: 'inline-flex', alignItems: 'flex-start', gap: 1.2,
+            background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)',
+            borderRadius: '14px', px: 2.5, py: 1.5, maxWidth: 600,
+          }}>
+            <QuoteIcon sx={{ color: '#6366F1', fontSize: 20, mt: 0.2, flexShrink: 0 }} />
+            <Typography sx={{ color: '#94A3B8', fontStyle: 'italic', lineHeight: 1.6, fontSize: '1rem' }}>
+              {quote}
+            </Typography>
+          </Box>
+        </Box>
+
+        {error && <Alert severity="error" sx={{ mb: 4, borderRadius: '14px' }}>{error}</Alert>}
+
+        {/* ── Stats ───────────────────────────────────────────────────── */}
+        <Grid container spacing={3} sx={{ mb: 5 }}>
+          {[
+            { value: totalHabits, label: 'Total Habits', icon: <TrophyIcon />, gradient: 'linear-gradient(135deg, #6366F1, #8B5CF6)', glowColor: '#6366F1' },
+            { value: `${completedToday} / ${totalHabits}`, label: 'Completed Today', icon: <CalendarIcon />, gradient: 'linear-gradient(135deg, #10B981, #34D399)', glowColor: '#10B981' },
+            { value: `${longestStreak} days`, label: 'Longest Streak', icon: <FireIcon />, gradient: 'linear-gradient(135deg, #F59E0B, #FCD34D)', glowColor: '#F59E0B' },
+            { value: `${completionRate}%`, label: "Today's Rate", icon: <TrendingUpIcon />, gradient: 'linear-gradient(135deg, #3B82F6, #60A5FA)', glowColor: '#3B82F6' },
+          ].map(s => (
+            <Grid item xs={12} sm={6} lg={3} key={s.label}>
+              <StatCard {...s} />
+            </Grid>
+          ))}
+        </Grid>
+
+        {/* ── Progress bar ────────────────────────────────────────────── */}
+        {totalHabits > 0 && (
+          <Box sx={{
+            mb: 5,
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '20px',
+            p: 3.5,
+          }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography sx={{ fontWeight: 700, fontSize: '1.05rem', color: '#94A3B8' }}>
+                Daily Progress
+              </Typography>
+              <Typography sx={{
+                fontWeight: 800, fontSize: '1.1rem',
+                color: completionRate === 100 ? '#34D399' : '#818CF8',
+              }}>
+                {completionRate === 100 ? '🎉 All done!' : `${completionRate}% complete`}
+              </Typography>
+            </Box>
+            <LinearProgress
+              variant="determinate" value={completionRate}
+              sx={{
+                height: 10, borderRadius: 5,
+                bgcolor: 'rgba(255,255,255,0.07)',
+                '& .MuiLinearProgress-bar': {
+                  background: completionRate === 100
+                    ? 'linear-gradient(90deg, #10B981, #34D399)'
+                    : 'linear-gradient(90deg, #6366F1, #8B5CF6)',
+                  borderRadius: 5,
+                  transition: 'transform 0.8s ease',
+                },
+              }}
+            />
+          </Box>
+        )}
+
+        {/* ── Section header ──────────────────────────────────────────── */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3.5 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: '#F1F5F9' }}>
+            Your Habits
+            <Box component="span" sx={{
+              ml: 1.5, px: 1.5, py: 0.4, borderRadius: '10px',
+              background: 'rgba(99,102,241,0.18)', color: '#818CF8',
+              fontSize: '0.9rem', fontWeight: 700, verticalAlign: 'middle',
+            }}>
+              {totalHabits}
+            </Box>
+          </Typography>
+          {habits.length > 0 && (
+            <Button
+              startIcon={<AddIcon />}
+              onClick={() => navigate('/habits/new')}
+              sx={{
+                color: '#6366F1', fontWeight: 700, fontSize: '0.95rem',
+                borderRadius: '12px', px: 2,
+                '&:hover': { bgcolor: 'rgba(99,102,241,0.12)' },
+              }}
+            >
+              Add habit
+            </Button>
           )}
         </Box>
 
-        {/* Delete Confirmation Dialog */}
-        <Dialog 
-          open={deleteDialogOpen} 
-          onClose={() => setDeleteDialogOpen(false)}
-          TransitionComponent={Zoom}
-        >
-          <DialogTitle>Delete Habit</DialogTitle>
-          <DialogContent>
-            <Typography>
-              Are you sure you want to delete "{habitToDelete?.name}"? This action cannot be undone.
+        {/* ── Empty state ─────────────────────────────────────────────── */}
+        {habits.length === 0 ? (
+          <Box sx={{
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px dashed rgba(255,255,255,0.12)',
+            borderRadius: '24px',
+            py: 12, px: 4,
+            textAlign: 'center',
+          }}>
+            <Box sx={{
+              width: 90, height: 90, borderRadius: '26px', mb: 4, mx: 'auto',
+              background: 'linear-gradient(135deg, rgba(99,102,241,0.25), rgba(139,92,246,0.2))',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 46,
+              boxShadow: '0 8px 32px rgba(99,102,241,0.2)',
+            }}>🎯</Box>
+            <Typography sx={{ fontWeight: 800, fontSize: '1.8rem', color: '#F1F5F9', mb: 1.5 }}>
+              Start your first habit
             </Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleDeleteConfirm} color="error">
-              Delete
+            <Typography sx={{ color: '#475569', fontSize: '1.05rem', mb: 5, maxWidth: 380, mx: 'auto', lineHeight: 1.7 }}>
+              Track meaningful daily actions and watch your streaks grow over time.
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => navigate('/habits/new')}
+              sx={{ borderRadius: '14px', px: 5, py: 1.5, fontSize: '1rem', fontWeight: 700 }}
+            >
+              Create Your First Habit
             </Button>
-          </DialogActions>
-        </Dialog>
+          </Box>
+        ) : (
+          /* ── Habit Cards ─────────────────────────────────────────── */
+          <Grid container spacing={3}>
+            {habits.map(habit => (
+              <Grid item xs={12} sm={6} lg={4} key={habit._id}>
+                <HabitCard
+                  habit={habit}
+                  onLog={() => { setHabitToLog(habit); setLogDialogOpen(true); }}
+                  onView={() => navigate(`/habits/${habit._id}/edit`)}
+                  onDelete={() => { setHabitToDelete(habit); setDeleteDialogOpen(true); }}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        )}
+      </Box>
 
-        {/* Log Habit Dialog */}
-        <Dialog 
-          open={logDialogOpen} 
-          onClose={() => setLogDialogOpen(false)}
-          TransitionComponent={Zoom}
-        >
-          <DialogTitle>Log Habit Completion</DialogTitle>
-          <DialogContent>
-            <TextField
-              fullWidth
-              label="Notes (optional)"
-              multiline
-              rows={3}
-              value={logNotes}
-              onChange={(e) => setLogNotes(e.target.value)}
-              margin="normal"
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setLogDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleLogConfirm} color="primary">
-              Log
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Container>
-    </BackgroundBox>
+      {/* ── Delete Dialog ──────────────────────────────────────────────── */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 800, color: '#F1F5F9', fontSize: '1.2rem', pb: 1 }}>
+          Delete Habit
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: '#94A3B8', fontSize: '1rem' }}>
+            Delete <Box component="span" sx={{ fontWeight: 700, color: '#F1F5F9' }}>"{habitToDelete?.name}"</Box>? This cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3, gap: 1.5 }}>
+          <Button onClick={() => setDeleteDialogOpen(false)} sx={{ color: '#64748B', fontSize: '0.95rem' }}>Cancel</Button>
+          <Button onClick={handleDeleteConfirm} variant="contained"
+            sx={{ background: 'linear-gradient(135deg,#EF4444,#DC2626)', boxShadow: '0 4px 16px rgba(239,68,68,0.35)', fontSize: '0.95rem' }}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Log Dialog ─────────────────────────────────────────────────── */}
+      <Dialog open={logDialogOpen} onClose={() => setLogDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 800, color: '#F1F5F9', fontSize: '1.2rem', pb: 0.5 }}>
+          Log ·{' '}
+          <Box component="span" sx={{ background: 'linear-gradient(135deg,#818CF8,#C084FC)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            {habitToLog?.name}
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: '#64748B', fontSize: '1rem', mb: 2.5 }}>
+            Keep that streak alive 🔥 Add an optional note.
+          </Typography>
+          <TextField fullWidth label="Notes (optional)" multiline rows={3}
+            value={logNotes} onChange={e => setLogNotes(e.target.value)} placeholder="How did it go?" />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3, gap: 1.5 }}>
+          <Button onClick={() => setLogDialogOpen(false)} sx={{ color: '#64748B', fontSize: '0.95rem' }}>Cancel</Button>
+          <Button onClick={handleLogConfirm} variant="contained" sx={{ fontSize: '0.95rem' }}>Log Habit ✓</Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 }
 
-export default Dashboard; 
+export default Dashboard;
