@@ -74,3 +74,8 @@ The app will run at [http://localhost:3000](http://localhost:3000).
 
 ---
 
+## 🌐 Live Demo
+
+[Open TrackWise](https://trackwise-habit-tracker-sv.netlify.app)
+
+> The React frontend is hosted on Netlify. Authentication and persistent data features depend on the separately deployed API.
